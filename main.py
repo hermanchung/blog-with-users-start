@@ -86,15 +86,15 @@ db.create_all()
 
 
 class RegisterForm(FlaskForm):
-    email = forms.StringField(validators=[DataRequired()])
-    pw = forms.PasswordField(label='Password', validators=[DataRequired(), Email()])
+    email = forms.StringField(validators=[DataRequired(), Email()])
+    pw = forms.PasswordField(label='Password', validators=[DataRequired()])
     name = forms.StringField(validators=[DataRequired()])
     submit = forms.SubmitField('Submit')
 
 
 class LoginForm(FlaskForm):
-    email = forms.StringField(validators=[DataRequired()])
-    pw = forms.PasswordField(label='Password', validators=[DataRequired(), Email()])
+    email = forms.StringField(validators=[DataRequired(), Email()])
+    pw = forms.PasswordField(label='Password', validators=[DataRequired()])
     submit = forms.SubmitField('Submit')
 
 
@@ -112,18 +112,26 @@ def get_all_posts():
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     form = RegisterForm()
-    if request.method == 'POST':
-        email = request.form['email']
-        pw = generate_password_hash(request.form['pw'], salt_length=5)
-        name = request.form['name']
-        new_user = User()
-        new_user.email = email
-        new_user.pw = pw
-        new_user.name = name
-        db.session.add(new_user)
-        db.session.commit()
-        login_user(new_user)
+    if request.method == 'POST' and form.validate_on_submit():
+        existing_users = User.query.all()
+        current_email_list = [user.email for user in existing_users]
+        if form.email.data not in current_email_list:
+            email = request.form['email']
+            pw = generate_password_hash(request.form['pw'], salt_length=5)
+            name = request.form['name']
+            new_user = User()
+            new_user.email = email
+            new_user.pw = pw
+            new_user.name = name
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+        else:
+            flash('user already registered')
+            return redirect(url_for('login'))
         return redirect(url_for('get_all_posts'))
+    else:
+        flash('Not correct email format/empty blanks')
     return render_template("register.html", form=form)
 
 
