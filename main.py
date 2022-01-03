@@ -1,3 +1,4 @@
+import os
 import sqlalchemy.engine
 import forms
 from flask import Flask, render_template, redirect, url_for, flash, request
@@ -12,8 +13,11 @@ from forms import CreatePostForm, FlaskForm, CommentForm
 from wtforms.validators import Email, DataRequired
 from flask_gravatar import Gravatar
 
+# CSRF PROTECTION
+SECRET_KEY = os.urandom(32)
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = SECRET_KEY
 ckeditor = CKEditor(app)
 Bootstrap(app)
 gravatar = Gravatar(app,
